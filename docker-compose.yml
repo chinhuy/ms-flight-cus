@@ -1,13 +1,22 @@
 version: "3.4"
 
 services:
-  ms-nodebootstrap-example:
-    container_name: ms-nodebootstrap-example
+  ms-flights:
+    container_name: ms-flights
     user: root # avoids ton of volume mounting headaches in dev mode.
+    #current logged in user
+    #Fix permission issue: https://faun.pub/set-current-host-user-for-docker-container-4e521cef9ffc
+    # user: 1000:1000
+    # stdin_open: true
+    # tty: true
     build:
       context: .
       target: build
     volumes:
+      # - /etc/group:/etc/group:ro
+      # - /etc/passwd:/etc/passwd:ro
+      # - /etc/shadow:/etc/shadow:ro
+      # - /etc/sudoers.d:/etc/sudoers.d:ro
       - ./:/opt/app
       # @see: http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html#the-node_modules-volume-trick
       - /opt/app/node_modules
@@ -16,7 +25,7 @@ services:
     env_file:
       - ./database.env
     links:
-      - ms-nodebootstrap-example-db
+      - ms-flights-db
     environment:
       - NODE_ENV=dev
       - NODE_HOT_RELOAD=1
@@ -25,11 +34,12 @@ services:
       #- PORT=5501 # this is overriden in shell/start-dev.sh since wait-for.sh compromises it from here
     # command: nodemon -e js,coffee,jade,handlebars server.js
     # @see: https://docs.docker.com/compose/startup-order/
-    # command: ["./shell/wait-for.sh", "ms-nodebootstrap-example-db:3306", "--", "./shell/start-dev.sh"]
-    command: ./shell/wait-for.sh ms-nodebootstrap-example-db:3306 -- ./shell/start-dev.sh
+    # command: ["./shell/wait-for.sh", "ms-flights-db:3306", "--", "./shell/start-dev.sh"]
+    # command: tail -f /dev/null && ./shell/wait-for.sh ms-flights-db:3306 -- ./shell/start-dev.sh
+    command: ./shell/wait-for.sh ms-flights-db:3306 -- ./shell/start-dev.sh
 
-  ms-nodebootstrap-example-db:
-    container_name: ms-nodebootstrap-example-db
+  ms-flights-db:
+    container_name: ms-flights-db
     image: mysql:8
     # port mapping not needed for the app, but convenient in debugging
     # to use some GUI tool (e.g. SequelPro) against the DB, on the host
@@ -44,6 +54,7 @@ services:
     volumes:
       - ms_nb_example_db_data:/var/lib/mysql
     restart: always
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
   ms_nb_example_db_data:

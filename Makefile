@@ -1,7 +1,7 @@
 default: start
 
 project:=nb-demo
-service:=ms-nodebootstrap-example
+service:=ms-flights
 NODE_ENV?=dev
 COMMIT_HASH = $(shell git rev-parse --verify HEAD)
 
